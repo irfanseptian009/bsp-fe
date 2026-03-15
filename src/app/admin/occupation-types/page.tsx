@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 import RouteGuard from '@/components/layout/RouteGuard';
@@ -20,7 +20,7 @@ import { Role, OccupationType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,7 @@ export default function OccupationTypesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<OccupationType | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const getErrorMessage = (payload: unknown, fallback: string) => {
     if (typeof payload === 'string' && payload.trim().length > 0) {
       return payload;
@@ -121,18 +122,28 @@ export default function OccupationTypesPage() {
     }
   };
 
+  const filteredOccupationTypes = occupationTypes.filter((type) => {
+    const keyword = searchTerm.trim().toLowerCase();
+    if (!keyword) return true;
+
+    return (
+      type.code.toLowerCase().includes(keyword) ||
+      type.name.toLowerCase().includes(keyword)
+    );
+  });
+
   return (
     <RouteGuard requiredRole={Role.ADMIN}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tipe Okupasi</h1>
+            <h1 className="text-2xl font-bold text-orange-600 dark:text-orange-400">Tipe Okupasi</h1>
             <p className="text-gray-500">
               Kelola tipe okupasi dan rate premi
             </p>
           </div>
           <Button
-            className="gap-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
+            className="gap-2 bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-600"
             onClick={openCreate}
           >
             <Plus className="h-4 w-4" />
@@ -176,7 +187,7 @@ export default function OccupationTypesPage() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
+                  className="w-full bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-600"
                 >
                   {editingItem ? 'Simpan Perubahan' : 'Tambah'}
                 </Button>
@@ -207,15 +218,29 @@ export default function OccupationTypesPage() {
           </Dialog>
         </div>
 
-        <Card className="border-0 shadow-sm">
+        <Card className="border-border/70 shadow-sm">
           <CardContent className="p-0">
+            <div className="relative border-b px-4 py-3 md:px-6">
+              <Search className="text-muted-foreground pointer-events-none absolute left-7 top-1/2 h-4 w-4 -translate-y-1/2" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari kode atau nama tipe okupasi..."
+                className="pl-9"
+              />
+            </div>
+
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                <Loader2 className="text-primary h-8 w-8 animate-spin" />
+              </div>
+            ) : filteredOccupationTypes.length === 0 ? (
+              <div className="text-muted-foreground py-12 text-center">
+                Data tipe okupasi tidak ditemukan.
               </div>
             ) : (
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead>Kode</TableHead>
                     <TableHead>Nama</TableHead>
@@ -224,7 +249,7 @@ export default function OccupationTypesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {occupationTypes.map((type) => (
+                  {filteredOccupationTypes.map((type) => (
                     <TableRow key={type.id}>
                       <TableCell className="font-mono">{type.code}</TableCell>
                       <TableCell className="font-medium">{type.name}</TableCell>
@@ -243,7 +268,7 @@ export default function OccupationTypesPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1 border-red-200 text-red-600 hover:bg-red-50"
+                            className="gap-1 border-rose-200 text-rose-600 hover:bg-rose-50"
                             onClick={() => setDeleteTargetId(type.id)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />

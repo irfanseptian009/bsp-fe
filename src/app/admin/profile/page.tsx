@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Camera, Loader2, Mail, ShieldCheck, User } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import RouteGuard from '@/components/layout/RouteGuard';
@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function ProfilePage() {
+export default function AdminProfilePage() {
   const dispatch = useAppDispatch();
   const { user, isLoading } = useAppSelector((state) => state.auth);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,7 +69,7 @@ export default function ProfilePage() {
     const result = await dispatch(updateProfile(values));
 
     if (updateProfile.fulfilled.match(result)) {
-      toast.success('Profil berhasil diperbarui!');
+      toast.success('Profil admin berhasil diperbarui!');
     } else {
       toast.error(result.payload as string);
     }
@@ -87,7 +87,7 @@ export default function ProfilePage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      toast.success('Foto profil berhasil diperbarui!');
+      toast.success('Foto profil admin berhasil diperbarui!');
       return;
     }
 
@@ -100,24 +100,20 @@ export default function ProfilePage() {
   };
 
   return (
-    <RouteGuard requiredRole={Role.CUSTOMER}>
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="dark:from-primary/10 dark:via-background dark:to-background rounded-2xl border border-orange-100/60 bg-linear-to-br p-6 shadow-sm dark:border-orange-500/20">
-          <p className="mb-2 inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
-            Profile Center
-          </p>
-          <h1 className="text-2xl font-bold text-orange-600 dark:text-orange-400">Profil Saya</h1>
-          <p className="text-muted-foreground mt-1">Perbarui foto dan informasi akun Anda dengan tampilan yang lebih profesional.</p>
+    <RouteGuard requiredRole={Role.ADMIN}>
+      <div className="mx-auto max-w-lg space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-orange-600 dark:text-orange-400">Profil Admin</h1>
+          <p className="text-gray-500">Perbarui foto dan informasi akun admin</p>
         </div>
 
-        <Card className="border-border/70 bg-white/80 shadow-xl backdrop-blur-sm dark:bg-slate-900/70">
-          <CardHeader className="border-b">
+        <Card className="border-0 shadow-sm">
+          <CardHeader>
             <CardTitle className="text-lg">Informasi Akun</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-6 grid gap-6 lg:grid-cols-[240px_1fr]">
-              <div className="rounded-2xl border border-blue-100/70 bg-blue-50/40 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
-                <div className="mx-auto relative h-24 w-24 overflow-hidden rounded-full border-2 border-blue-200 bg-white shadow-sm">
+            <div className="mb-6 flex flex-col items-center gap-3 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+              <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-blue-200 bg-white">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
@@ -132,15 +128,6 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
-
-                <div className="mt-4 text-center">
-                  <p className="text-foreground text-sm font-semibold">{user?.name || 'User'}</p>
-                  <p className="text-muted-foreground text-xs">{user?.email || '-'}</p>
-                  <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-semibold text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    Customer
-                  </div>
-                </div>
 
               <input
                 ref={fileInputRef}
@@ -166,7 +153,7 @@ export default function ProfilePage() {
                 className="hidden"
               />
 
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -188,51 +175,37 @@ export default function ProfilePage() {
                 </Button>
               </div>
 
-                <p className="text-muted-foreground mt-2 text-center text-xs">Format: JPG, PNG, WEBP (maks. 5MB)</p>
+              <p className="text-xs text-slate-500">Format: JPG, PNG, WEBP (maks. 5MB)</p>
+            </div>
+
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nama</Label>
+                <Input id="name" {...register('name')} />
+                {errors.name && (
+                  <p className="text-xs text-red-500">{errors.name.message}</p>
+                )}
               </div>
 
-              <form onSubmit={handleFormSubmit} className="space-y-4">
-                <div className="rounded-xl border bg-muted/30 p-4">
-                  <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">Detail Akun</p>
-                  <p className="text-muted-foreground mt-1 text-xs">Pastikan data sesuai agar proses verifikasi lebih mudah.</p>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" {...register('email')} />
+                {errors.email && (
+                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                )}
+              </div>
 
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="name">Nama</Label>
-                      <div className="relative">
-                        <User className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                        <Input id="name" className="pl-9" {...register('name')} />
-                      </div>
-                      {errors.name && (
-                        <p className="text-xs text-red-500">{errors.name.message}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="email">Email</Label>
-                      <div className="relative">
-                        <Mail className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                        <Input id="email" type="email" className="pl-9" {...register('email')} />
-                      </div>
-                      {errors.email && (
-                        <p className="text-xs text-red-500">{errors.email.message}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-600"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : null}
-                  Simpan Perubahan
-                </Button>
-              </form>
-            </div>
+              <Button
+                type="submit"
+                className="w-full bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-600"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Simpan Perubahan
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

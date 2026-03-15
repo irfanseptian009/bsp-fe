@@ -10,15 +10,15 @@ interface StatusBadgeProps {
 const STATUS_CONFIG: Record<RequestStatus, { label: string; className: string }> = {
   [RequestStatus.APPROVED]: {
     label: 'Sudah Dibayar',
-    className: 'bg-green-100 text-green-700 hover:bg-green-100',
+    className: 'bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/20 dark:text-blue-300',
   },
   [RequestStatus.REJECTED]: {
     label: 'Belum Dibayar',
-    className: 'bg-red-100 text-red-700 hover:bg-red-100',
+    className: 'bg-orange-100 text-orange-700 hover:bg-orange-100 dark:bg-orange-500/20 dark:text-orange-300',
   },
   [RequestStatus.PENDING]: {
     label: 'Menunggu',
-    className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100',
+    className: 'bg-orange-100 text-orange-700 hover:bg-orange-100 dark:bg-orange-500/20 dark:text-orange-300',
   },
 };
 

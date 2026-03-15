@@ -2,14 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Flame, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { register as registerAction, clearError } from '@/store/slices/authSlice';
 import { registerSchema, type RegisterFormValues } from '@/lib/validations';
+import ThemeToggle from '@/components/shared/theme-toggle';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,13 +50,23 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-red-50 px-4">
-      <Card className="w-full max-w-md shadow-xl border-0 shadow-orange-100/50">
+    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
+      <Card className="w-full max-w-md border border-blue-100/80 shadow-xl shadow-blue-100/60 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/20">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 shadow-lg shadow-orange-200">
-            <Flame className="h-7 w-7 text-white" />
+          <div className="mx-auto mb-4 rounded-2xl border border-blue-100 bg-white px-5 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <Image
+              src="/bsp_logo.png"
+              alt="BSP Insurance Broker"
+              width={180}
+              height={66}
+              priority
+              className="h-auto w-40"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold">Daftar Akun</CardTitle>
+          <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100">Daftar Akun</CardTitle>
           <CardDescription>
             Buat akun untuk mengajukan asuransi kebakaran
           </CardDescription>
@@ -116,7 +128,7 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
+              className="w-full bg-orange-500 text-white hover:bg-orange-600 dark:bg-orange-500 dark:hover:bg-orange-600"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -126,11 +138,11 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
+          <div className="mt-6 text-center text-sm text-gray-500 dark:text-slate-400">
             Sudah punya akun?{' '}
             <Link
               href="/login"
-              className="font-medium text-orange-600 hover:text-orange-700"
+              className="font-medium text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200"
             >
               Masuk
             </Link>

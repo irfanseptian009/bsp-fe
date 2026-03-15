@@ -20,7 +20,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
 import {
   Dialog,
@@ -46,8 +45,8 @@ export default function PoliciesPage() {
   const { branches } = useAppSelector((state) => state.branches);
 
   const [searchName, setSearchName] = useState('');
-  const [searchBranch, setSearchBranch] = useState('');
-  const [searchOccupation, setSearchOccupation] = useState('');
+  const [searchBranch, setSearchBranch] = useState('all');
+  const [searchOccupation, setSearchOccupation] = useState('all');
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,16 +57,17 @@ export default function PoliciesPage() {
 
   const handleSearch = () => {
     const params: Record<string, string> = {};
-    if (searchName) params.name = searchName;
-    if (searchBranch) params.branchId = searchBranch;
-    if (searchOccupation) params.occupationTypeId = searchOccupation;
+    const trimmedName = searchName.trim();
+    if (trimmedName) params.name = trimmedName;
+    if (searchBranch !== 'all') params.branchId = searchBranch;
+    if (searchOccupation !== 'all') params.occupationTypeId = searchOccupation;
     dispatch(fetchPolicies(params));
   };
 
   const handleClear = () => {
     setSearchName('');
-    setSearchBranch('');
-    setSearchOccupation('');
+    setSearchBranch('all');
+    setSearchOccupation('all');
     dispatch(fetchPolicies());
   };
 
@@ -103,68 +103,89 @@ export default function PoliciesPage() {
     return age;
   };
 
+  const selectedBranchLabel =
+    searchBranch === 'all'
+      ? 'Semua Cabang'
+      : (() => {
+          const selected = branches.find((branch) => branch.id === searchBranch);
+          return selected ? `${selected.code} - ${selected.name}` : 'Semua Cabang';
+        })();
+
+  const selectedOccupationLabel =
+    searchOccupation === 'all'
+      ? 'Semua Tipe'
+      : (() => {
+          const selected = occupationTypes.find((type) => type.id === searchOccupation);
+          return selected ? `${selected.code} - ${selected.name}` : 'Semua Tipe';
+        })();
+
   return (
     <RouteGuard requiredRole={Role.ADMIN}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Data Polis</h1>
+          <h1 className="text-2xl font-bold text-orange-600 dark:text-orange-400">Data Polis</h1>
           <p className="text-gray-500">
             Kelola data polis asuransi kebakaran
           </p>
         </div>
 
         {/* Search / Filter */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="flex flex-wrap items-end gap-3 p-4">
-            <div className="flex-1 min-w-[200px]">
+        <Card className="border-border/70 shadow-sm">
+          <CardContent className="grid gap-3 p-4 md:grid-cols-12">
+            <div className="md:col-span-4 lg:col-span-5">
               <Input
                 placeholder="Cari nama pemegang polis..."
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch();
+                }}
               />
             </div>
-            <div className="w-[200px]">
+            <div className="md:col-span-3 lg:col-span-2">
               <Select
                 value={searchBranch}
-                onValueChange={(val) => setSearchBranch(val ?? '')}
+                onValueChange={(value) => setSearchBranch(value ?? 'all')}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua Cabang" />
+                <SelectTrigger className="w-full min-w-0">
+                  <span className="text-left line-clamp-1">{selectedBranchLabel}</span>
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Semua Cabang</SelectItem>
                   {branches.map((branch) => (
                     <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
+                      {branch.code} - {branch.name || branch.id.slice(0, 8)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-[200px]">
+            <div className="md:col-span-3 lg:col-span-2">
               <Select
                 value={searchOccupation}
-                onValueChange={(val) => setSearchOccupation(val ?? '')}
+                onValueChange={(value) => setSearchOccupation(value ?? 'all')}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Semua Tipe" />
+                <SelectTrigger className="w-full min-w-0">
+                  <span className="text-left line-clamp-1">{selectedOccupationLabel}</span>
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Semua Tipe</SelectItem>
                   {occupationTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id}>
-                      {type.name}
+                      {type.code} - {type.name || type.id.slice(0, 8)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <Button
-              className="gap-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
+              className="gap-2 bg-orange-500 text-white hover:bg-orange-600 md:col-span-2 lg:col-span-1"
               onClick={handleSearch}
             >
               <Search className="h-4 w-4" />
               Cari
             </Button>
-            <Button variant="outline" onClick={handleClear}>
+            <Button variant="outline" onClick={handleClear} className="md:col-span-2 lg:col-span-1">
               Reset
             </Button>
           </CardContent>
@@ -193,19 +214,19 @@ export default function PoliciesPage() {
         </Dialog>
 
         {/* Policies Table */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border-border/70 shadow-sm">
           <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                <Loader2 className="text-primary h-8 w-8 animate-spin" />
               </div>
             ) : policies.length === 0 ? (
-              <div className="py-12 text-center text-gray-500">
+              <div className="text-muted-foreground py-12 text-center">
                 Tidak ada data polis.
               </div>
             ) : (
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead>No. Polis</TableHead>
                     <TableHead>No. Aplikasi</TableHead>
@@ -251,7 +272,7 @@ export default function PoliciesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="gap-1 border-red-200 text-red-600 hover:bg-red-50"
+                          className="gap-1 border-rose-200 text-rose-600 hover:bg-rose-50"
                           onClick={() => setDeleteTargetId(policy.id)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />

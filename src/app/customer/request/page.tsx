@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,7 +25,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -60,8 +59,8 @@ export default function InsuranceRequestPage() {
   const {
     register,
     handleSubmit,
+    control,
     setValue,
-    watch,
     trigger,
     formState: { errors },
   } = useForm<InsuranceRequestFormValues>({
@@ -77,15 +76,16 @@ export default function InsuranceRequestPage() {
     dispatch(fetchOccupationTypes());
   }, [dispatch]);
 
-  const selectedOccupationId = watch('occupationTypeId');
-  const buildingPrice = watch('buildingPrice');
-  const duration = watch('duration');
-  const selectedConstructionClass = watch('constructionClass');
+  const selectedOccupationId = useWatch({ control, name: 'occupationTypeId' });
+  const buildingPrice = useWatch({ control, name: 'buildingPrice' });
+  const duration = useWatch({ control, name: 'duration' });
+  const selectedConstructionClass = useWatch({ control, name: 'constructionClass' });
 
   /* ─── Live premium preview ─── */
   const selectedOccupation = occupationTypes.find(
     (o) => o.id === selectedOccupationId,
   );
+  const selectedDurationLabel = duration ? `${duration} Tahun` : '';
   const premiumPreview =
     selectedOccupation && buildingPrice && duration
       ? (buildingPrice * selectedOccupation.premiumRate) / 1000 * duration
@@ -118,28 +118,37 @@ export default function InsuranceRequestPage() {
     <RouteGuard requiredRole={Role.CUSTOMER}>
       <div className="mx-auto max-w-5xl space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+        <div className="dark:from-primary/10 dark:via-background dark:to-background rounded-2xl border border-orange-100/60 bg-linear-to-br p-6 shadow-sm dark:border-orange-500/20">
+          <p className="mb-2 inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
+            Ajukan Asuransi
+          </p>
+          <h1 className="text-2xl font-bold text-orange-600 dark:text-orange-400">
             Asuransi Kebakaran
           </h1>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground mt-1">
             Isi form berikut untuk mengajukan asuransi kebakaran
           </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Card className="border-0 shadow-sm">
+          <Card className="border-border/70 bg-white/80 shadow-xl backdrop-blur-sm dark:bg-slate-900/70">
             <CardContent className="p-6">
               {/* Two column layout matching the screenshot */}
               <div className="grid gap-8 lg:grid-cols-2">
                 {/* ─── LEFT COLUMN ─── */}
                 <div className="space-y-5">
+                  <div className="mb-1">
+                    <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">Informasi Polis</p>
+                    <p className="text-muted-foreground text-xs">Lengkapi data pertanggungan dan karakter properti.</p>
+                  </div>
+
                   {/* Jangka Waktu Pertanggungan */}
                   <div className="space-y-2">
                     <Label className="font-semibold text-gray-700">
                       Jangka Waktu Pertanggungan
                     </Label>
                     <Select
+                      value={duration ? String(duration) : undefined}
                       onValueChange={(val) => {
                         setValue('duration', parseInt(String(val), 10), {
                           shouldDirty: true,
@@ -149,7 +158,9 @@ export default function InsuranceRequestPage() {
                       }}
                     >
                       <SelectTrigger id="duration">
-                        <SelectValue placeholder="Pilih Jangka Waktu Pertanggungan" />
+                        <span className="line-clamp-1 text-left">
+                          {selectedDurationLabel || 'Pilih Jangka Waktu Pertanggungan'}
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((y) => (
@@ -168,6 +179,7 @@ export default function InsuranceRequestPage() {
                   <div className="space-y-2">
                     <Label className="font-semibold text-gray-700">Okupasi</Label>
                     <Select
+                      value={selectedOccupationId || undefined}
                       onValueChange={(val) => {
                         setValue('occupationTypeId', String(val), {
                           shouldDirty: true,
@@ -177,7 +189,9 @@ export default function InsuranceRequestPage() {
                       }}
                     >
                       <SelectTrigger id="occupationTypeId">
-                        <SelectValue placeholder="Pilih Okupasi" />
+                        <span className="line-clamp-1 text-left">
+                          {selectedOccupation?.name || 'Pilih Okupasi'}
+                        </span>
                       </SelectTrigger>
                       <SelectContent>
                         {occupationTypes.map((type) => (
@@ -268,6 +282,11 @@ export default function InsuranceRequestPage() {
 
                 {/* ─── RIGHT COLUMN ─── */}
                 <div className="space-y-5">
+                  <div className="mb-1">
+                    <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">Lokasi Pertanggungan</p>
+                    <p className="text-muted-foreground text-xs">Masukkan alamat objek agar verifikasi risiko lebih akurat.</p>
+                  </div>
+
                   {/* Alamat Objek Pertanggungan */}
                   <div className="space-y-2">
                     <Label className="font-semibold text-gray-700">
@@ -349,8 +368,8 @@ export default function InsuranceRequestPage() {
 
               {/* Premium Preview */}
               {premiumPreview > 0 && (
-                <div className="mt-6 rounded-lg bg-gradient-to-r from-orange-50 to-red-50 p-5">
-                  <h3 className="mb-3 font-semibold text-gray-900">
+                <div className="from-blue-50 to-orange-50 mt-6 rounded-xl border border-blue-100/80 bg-linear-to-r p-5 shadow-sm dark:border-blue-500/20 dark:from-blue-500/10 dark:to-orange-500/10">
+                  <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">
                     Estimasi Biaya
                   </h3>
                   <div className="space-y-1 text-sm">
@@ -366,7 +385,7 @@ export default function InsuranceRequestPage() {
                     </div>
                     <div className="mt-2 flex justify-between border-t pt-2">
                       <span className="font-semibold">Total</span>
-                      <span className="text-lg font-bold text-orange-600">
+                      <span className="text-lg font-bold text-blue-700">
                         {formatRupiah(totalPreview)}
                       </span>
                     </div>
@@ -377,7 +396,7 @@ export default function InsuranceRequestPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white"
                 disabled={isLoading || occupationLoading || occupationTypes.length === 0}
               >
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import './globals.css';
 import ReduxProvider from '@/store/provider';
-import { Toaster } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/components/shared/theme-provider';
 
-const inter = Inter({
+const poppins = Poppins({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-poppins',
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -20,12 +22,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <ReduxProvider>
-          {children}
-          <Toaster position="top-right" richColors />
-        </ReduxProvider>
+    <html lang="id" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${poppins.variable} font-sans antialiased`}>
+        <ThemeProvider>
+          <ReduxProvider>
+            {children}
+            <Toaster position="top-right" richColors />
+          </ReduxProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -70,6 +70,26 @@ export const updateProfile = createAsyncThunk<User, { name: string; email: strin
   },
 );
 
+export const uploadProfilePhoto = createAsyncThunk<User, File>(
+  'auth/uploadProfilePhoto',
+  async (file, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      const { data } = await api.post<User>('/users/me/photo', formData);
+
+      localStorage.setItem('user', JSON.stringify(data));
+      return data;
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      return rejectWithValue(
+        error.response?.data?.message || 'Upload foto profil gagal',
+      );
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -125,6 +145,19 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(updateProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Upload Profile Photo
+      .addCase(uploadProfilePhoto.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(uploadProfilePhoto.fulfilled, (state, action: PayloadAction<User>) => {
+        state.isLoading = false;
+        state.user = action.payload;
+      })
+      .addCase(uploadProfilePhoto.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
