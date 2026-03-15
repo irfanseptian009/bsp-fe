@@ -39,7 +39,8 @@ export const fetchOccupationTypes = createAsyncThunk<OccupationType[]>(
     try {
       const { data } = await api.get<OccupationType[]>('/occupation-types');
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal memuat data');
     }
   },
@@ -55,7 +56,8 @@ export const createOccupationType = createAsyncThunk<
       payload,
     );
     return data;
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { response?: { data?: { message?: string } } };
     return rejectWithValue(
       mapOccupationError(error.response?.data?.message || 'Gagal menambah data'),
     );
@@ -72,7 +74,8 @@ export const updateOccupationType = createAsyncThunk<
       payload,
     );
     return data;
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { response?: { data?: { message?: string } } };
     return rejectWithValue(
       mapOccupationError(error.response?.data?.message || 'Gagal update data'),
     );
@@ -85,7 +88,8 @@ export const deleteOccupationType = createAsyncThunk<string, string>(
     try {
       await api.delete(`/occupation-types/${id}`);
       return id;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal menghapus data');
     }
   },

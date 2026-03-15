@@ -28,7 +28,8 @@ export const login = createAsyncThunk<AuthResponse, LoginPayload>(
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
         error.response?.data?.message || 'Login gagal',
       );
@@ -44,7 +45,8 @@ export const register = createAsyncThunk<AuthResponse, RegisterPayload>(
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
         error.response?.data?.message || 'Registrasi gagal',
       );
@@ -59,7 +61,8 @@ export const updateProfile = createAsyncThunk<User, { name: string; email: strin
       const { data } = await api.patch<User>('/users/me', payload);
       localStorage.setItem('user', JSON.stringify(data));
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
         error.response?.data?.message || 'Update gagal',
       );

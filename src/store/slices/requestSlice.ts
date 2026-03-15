@@ -41,7 +41,8 @@ export const createInsuranceRequest = createAsyncThunk<
       payload,
     );
     return data;
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { response?: { data?: { message?: string } } };
     return rejectWithValue(
       mapCreateRequestError(error.response?.data?.message),
     );
@@ -57,7 +58,8 @@ export const fetchMyRequests = createAsyncThunk<InsuranceRequest[]>(
         '/insurance-requests/my-requests',
       );
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal memuat request');
     }
   },
@@ -72,7 +74,8 @@ export const fetchRequestByInvoice = createAsyncThunk<InsuranceRequest, string>(
         `/insurance-requests/invoice/${encodeURIComponent(invoiceNumber)}`,
       );
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
         error.response?.data?.message || 'Gagal memuat invoice',
       );
@@ -87,7 +90,8 @@ export const fetchAllRequests = createAsyncThunk<InsuranceRequest[]>(
     try {
       const { data } = await api.get<InsuranceRequest[]>('/insurance-requests');
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal memuat request');
     }
   },
@@ -102,7 +106,8 @@ export const approveRequest = createAsyncThunk<InsuranceRequest, string>(
         `/insurance-requests/${id}/approve`,
       );
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal approve request');
     }
   },
@@ -117,7 +122,8 @@ export const rejectRequest = createAsyncThunk<InsuranceRequest, string>(
         `/insurance-requests/${id}/reject`,
       );
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal reject request');
     }
   },

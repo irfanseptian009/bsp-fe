@@ -20,7 +20,8 @@ export const fetchBranches = createAsyncThunk<Branch[]>(
     try {
       const { data } = await api.get<Branch[]>('/branches');
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(
         error.response?.data?.message || 'Gagal memuat data cabang',
       );

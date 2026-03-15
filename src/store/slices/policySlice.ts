@@ -21,7 +21,8 @@ export const fetchPolicies = createAsyncThunk<
   try {
     const { data } = await api.get<Policy[]>('/policies', { params });
     return data;
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { response?: { data?: { message?: string } } };
     return rejectWithValue(error.response?.data?.message || 'Gagal memuat data');
   }
 });
@@ -32,7 +33,8 @@ export const createPolicy = createAsyncThunk<Policy, CreatePolicyPayload>(
     try {
       const { data } = await api.post<Policy>('/policies', payload);
       return data;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal membuat polis');
     }
   },
@@ -44,7 +46,8 @@ export const deletePolicy = createAsyncThunk<string, string>(
     try {
       await api.delete(`/policies/${id}`);
       return id;
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
       return rejectWithValue(error.response?.data?.message || 'Gagal menghapus polis');
     }
   },
