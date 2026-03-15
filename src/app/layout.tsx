@@ -12,7 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'FIMS - Fire Insurance Management System',
+  title: 'BSP -  Insurance Management System',
   description: 'Sistem manajemen asuransi kebakaran - kelola polis, request, dan invoice.',
 };
 
