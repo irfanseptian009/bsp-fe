@@ -23,6 +23,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Table,
   TableBody,
   TableCell,
@@ -40,6 +48,7 @@ export default function PoliciesPage() {
   const [searchName, setSearchName] = useState('');
   const [searchBranch, setSearchBranch] = useState('');
   const [searchOccupation, setSearchOccupation] = useState('');
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchPolicies());
@@ -62,13 +71,24 @@ export default function PoliciesPage() {
     dispatch(fetchPolicies());
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus polis ini?')) return;
-    const result = await dispatch(deletePolicy(id));
+  const getErrorMessage = (payload: unknown, fallback: string) => {
+    if (typeof payload === 'string' && payload.trim().length > 0) {
+      return payload;
+    }
+    return fallback;
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+
+    const result = await dispatch(deletePolicy(deleteTargetId));
     if (deletePolicy.fulfilled.match(result)) {
       toast.success('Polis berhasil dihapus!');
+      setDeleteTargetId(null);
     } else {
-      toast.error(result.payload as string);
+      toast.error(
+        getErrorMessage(result.payload, 'Gagal menghapus polis. Silakan coba lagi.'),
+      );
     }
   };
 
@@ -150,6 +170,28 @@ export default function PoliciesPage() {
           </CardContent>
         </Card>
 
+        <Dialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Konfirmasi Hapus Polis</DialogTitle>
+              <DialogDescription>
+                Yakin ingin menghapus polis ini? Tindakan ini tidak dapat dibatalkan.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteTargetId(null)}>
+                Batal
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleDelete}
+              >
+                Hapus
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Policies Table */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-0">
@@ -210,7 +252,7 @@ export default function PoliciesPage() {
                           size="sm"
                           variant="outline"
                           className="gap-1 border-red-200 text-red-600 hover:bg-red-50"
-                          onClick={() => handleDelete(policy.id)}
+                          onClick={() => setDeleteTargetId(policy.id)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>

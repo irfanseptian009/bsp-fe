@@ -24,6 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -41,6 +43,14 @@ export default function OccupationTypesPage() {
   const { occupationTypes, isLoading } = useAppSelector((state) => state.occupations);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<OccupationType | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const getErrorMessage = (payload: unknown, fallback: string) => {
+    if (typeof payload === 'string' && payload.trim().length > 0) {
+      return payload;
+    }
+    return fallback;
+  };
+
 
   const {
     register,
@@ -80,7 +90,9 @@ export default function OccupationTypesPage() {
         toast.success('Tipe okupasi berhasil diperbarui!');
         setIsDialogOpen(false);
       } else {
-        toast.error(result.payload as string);
+        toast.error(
+          getErrorMessage(result.payload, 'Gagal memperbarui tipe okupasi. Silakan coba lagi.'),
+        );
       }
     } else {
       const result = await dispatch(createOccupationType(values));
@@ -88,19 +100,24 @@ export default function OccupationTypesPage() {
         toast.success('Tipe okupasi berhasil ditambahkan!');
         setIsDialogOpen(false);
       } else {
-        toast.error(result.payload as string);
+        toast.error(
+          getErrorMessage(result.payload, 'Gagal menambahkan tipe okupasi. Silakan coba lagi.'),
+        );
       }
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus tipe okupasi ini?')) return;
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
 
-    const result = await dispatch(deleteOccupationType(id));
+    const result = await dispatch(deleteOccupationType(deleteTargetId));
     if (deleteOccupationType.fulfilled.match(result)) {
       toast.success('Tipe okupasi berhasil dihapus!');
+      setDeleteTargetId(null);
     } else {
-      toast.error(result.payload as string);
+      toast.error(
+        getErrorMessage(result.payload, 'Gagal menghapus tipe okupasi. Silakan coba lagi.'),
+      );
     }
   };
 
@@ -166,6 +183,28 @@ export default function OccupationTypesPage() {
               </form>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={!!deleteTargetId} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Konfirmasi Hapus Tipe Okupasi</DialogTitle>
+                <DialogDescription>
+                  Yakin ingin menghapus tipe okupasi ini? Tindakan ini tidak dapat dibatalkan.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDeleteTargetId(null)}>
+                  Batal
+                </Button>
+                <Button
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={handleDelete}
+                >
+                  Hapus
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Card className="border-0 shadow-sm">
@@ -205,7 +244,7 @@ export default function OccupationTypesPage() {
                             size="sm"
                             variant="outline"
                             className="gap-1 border-red-200 text-red-600 hover:bg-red-50"
-                            onClick={() => handleDelete(type.id)}
+                            onClick={() => setDeleteTargetId(type.id)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             Hapus

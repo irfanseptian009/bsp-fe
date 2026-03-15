@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,6 +18,14 @@ import { Role, RequestStatus } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Table,
   TableBody,
   TableCell,
@@ -29,10 +37,21 @@ import {
 export default function AdminRequestsPage() {
   const dispatch = useAppDispatch();
   const { requests, isLoading } = useAppSelector((state) => state.requests);
+  const [confirmAction, setConfirmAction] = useState<{
+    id: string;
+    type: 'approve' | 'reject';
+  } | null>(null);
 
   useEffect(() => {
     dispatch(fetchAllRequests());
   }, [dispatch]);
+
+  const getErrorMessage = (payload: unknown, fallback: string) => {
+    if (typeof payload === 'string' && payload.trim().length > 0) {
+      return payload;
+    }
+    return fallback;
+  };
 
   const handleApprove = async (id: string) => {
     const result = await dispatch(approveRequest(id));
@@ -41,7 +60,9 @@ export default function AdminRequestsPage() {
         'Request berhasil disetujui! Nomor polis: ' + result.payload.policyNumber,
       );
     } else {
-      toast.error(result.payload as string);
+      toast.error(
+        getErrorMessage(result.payload, 'Gagal menyetujui request. Silakan coba lagi.'),
+      );
     }
   };
 
@@ -50,8 +71,22 @@ export default function AdminRequestsPage() {
     if (rejectRequest.fulfilled.match(result)) {
       toast.success('Request berhasil ditolak.');
     } else {
-      toast.error(result.payload as string);
+      toast.error(
+        getErrorMessage(result.payload, 'Gagal menolak request. Silakan coba lagi.'),
+      );
     }
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+
+    if (confirmAction.type === 'approve') {
+      await handleApprove(confirmAction.id);
+    } else {
+      await handleReject(confirmAction.id);
+    }
+
+    setConfirmAction(null);
   };
 
   return (
@@ -113,7 +148,12 @@ export default function AdminRequestsPage() {
                               size="sm"
                               variant="outline"
                               className="gap-1 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700"
-                              onClick={() => handleApprove(req.id)}
+                              onClick={() =>
+                                setConfirmAction({
+                                  id: req.id,
+                                  type: 'approve',
+                                })
+                              }
                             >
                               <CheckCircle className="h-3.5 w-3.5" />
                               Approve
@@ -122,7 +162,12 @@ export default function AdminRequestsPage() {
                               size="sm"
                               variant="outline"
                               className="gap-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                              onClick={() => handleReject(req.id)}
+                              onClick={() =>
+                                setConfirmAction({
+                                  id: req.id,
+                                  type: 'reject',
+                                })
+                              }
                             >
                               <XCircle className="h-3.5 w-3.5" />
                               Reject
@@ -141,6 +186,38 @@ export default function AdminRequestsPage() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {confirmAction?.type === 'approve'
+                  ? 'Konfirmasi Approve Request'
+                  : 'Konfirmasi Reject Request'}
+              </DialogTitle>
+              <DialogDescription>
+                {confirmAction?.type === 'approve'
+                  ? 'Yakin ingin menyetujui request ini? Nomor polis akan dibuat otomatis.'
+                  : 'Yakin ingin menolak request ini? Tindakan ini tidak dapat dibatalkan.'}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setConfirmAction(null)}>
+                Batal
+              </Button>
+              <Button
+                className={
+                  confirmAction?.type === 'approve'
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
+                }
+                onClick={handleConfirmAction}
+              >
+                {confirmAction?.type === 'approve' ? 'Approve' : 'Reject'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </RouteGuard>
   );
