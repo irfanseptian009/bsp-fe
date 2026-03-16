@@ -66,6 +66,7 @@ export default function InsuranceRequestPage() {
   } = useForm<InsuranceRequestFormValues>({
     resolver: zodResolver(insuranceRequestSchema),
     defaultValues: {
+      occupationTypeId: '',
       earthquake: false,
       duration: 1,
       district: '-',
@@ -148,7 +149,7 @@ export default function InsuranceRequestPage() {
                       Jangka Waktu Pertanggungan
                     </Label>
                     <Select
-                      value={duration ? String(duration) : undefined}
+                      value={duration ? String(duration) : ''}
                       onValueChange={(val) => {
                         setValue('duration', parseInt(String(val), 10), {
                           shouldDirty: true,
@@ -179,7 +180,7 @@ export default function InsuranceRequestPage() {
                   <div className="space-y-2">
                     <Label className="font-semibold text-gray-700">Okupasi</Label>
                     <Select
-                      value={selectedOccupationId || undefined}
+                      value={selectedOccupationId ?? ''}
                       onValueChange={(val) => {
                         setValue('occupationTypeId', String(val), {
                           shouldDirty: true,

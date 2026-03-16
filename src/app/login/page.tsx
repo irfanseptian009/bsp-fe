@@ -123,7 +123,7 @@ export default function LoginPage() {
             />
           </div>
           <CardDescription>
-            Fire Insurance Management System
+            Insurance Management System
           </CardDescription>
         </CardHeader>
         <CardContent>
